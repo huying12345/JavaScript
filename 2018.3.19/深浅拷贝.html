@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>JavaScript专题之深浅拷贝</title>
+</head>
+<body>
+<script>
+    //数组的浅拷贝：只拷贝对象和数组的引用，这样我们无论在新旧数组进行了修改，两者都会发生变化
+    //可以利用数组的一些方法：比如，slice，concat返回一个新数组的特性来实现拷贝
+    var arr=['old', 1, true, null, undefined];
+    var new_arr=arr.concat();
+    new_arr[0]='new';
+    console.log(arr,new_arr);//['old', 1, true, null, undefined],['new', 1, true, null, undefined]
+    //slice
+    var new_arr=arr.slice();
+    console.log(new_arr);//["old", 1, true, null, undefined]
+
+    //深拷贝：就是指完全的拷贝一个对象，即使嵌套了对象，两者也相互分离，修改一个对象的属性，也不会影响另一个。
+    var arr=['old', 1, true, ['old1', 'old2'], {old: 1}];
+    var new_arr=JSON.parse(JSON.stringify(arr));//是一个简单粗暴的好方法，就是有一个问题，不能拷贝函数
+    console.log(new_arr);//["old", 1, true, Array(2), {…}]
+
+    //浅拷贝的实现
+    var shallowCopy=function (obj) {
+        //只拷贝对象
+        if(typeof obj!=='object')return;
+        //根据obj的类型判断是新建一个数组还是对象
+        var newObj=obj instanceof Array?[]:{};
+        //遍历obj,并且判断obj的属性才拷贝
+        for(var key in obj){
+            if(obj.hasOwnProperty(key)){
+                newObj[key]=obj[key];
+            }
+        }
+        return newObj;
+    }
+
+    //深拷贝的实现
+    var deepCopy=function (obj) {
+        if(typeof obj !=="object")return;
+        var newObj=obj instanceof Array?[]:{};
+        for(var key in obj){
+            if(obj.hasOwnProperty(key)){
+                newObj[key]=typeof obj[key]==="object"?deepCopy(obj[key]):obj[key];
+            }
+        }
+        return newObj;
+    }
+</script>
+</body>
+</html>

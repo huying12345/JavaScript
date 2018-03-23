@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>JavaScript专题之类型判断</title>
+</head>
+<body>
+<script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+<script>
+    function Person(name) {
+        this.name=name;
+    }
+    console.log($.isPlainObject({}));//true
+    console.log($.isPlainObject(new Object));//true
+    console.log($.isPlainObject(Object.create(null)));//true
+    console.log($.isPlainObject(Object.assign({a: 1}, {b: 2})));//true
+    console.log($.isPlainObject(new Person('yayu')));//false
+    console.log($.isPlainObject(Object.create({})));//false
+
+    function isEmptyObject(obj) {
+        var name;
+        for(name in obj){
+            return false;
+        }
+        return true;
+    }
+    console.log('---------------------------------------------');
+    console.log(isEmptyObject({})); // true
+    console.log(isEmptyObject([])); // true
+    console.log(isEmptyObject(null)); // true
+    console.log(isEmptyObject(undefined)); // true
+    console.log(isEmptyObject(1)); // true
+    console.log(isEmptyObject('')); // true
+    console.log(isEmptyObject(true)); // true
+
+    // window对象
+    function isWindow(obj) {
+        return obj!=null&&obj===obj.window;
+    }
+    // isArray对象：数组和类数组都会返回true
+    function isArray(obj) {
+        //obj必须有length属性
+        var length=!!obj&&"length" in obj&&obj.length;
+        var typeRes=type(obj);
+        //排除函数和window对象
+        if (typeRes === "function" || isWindow(obj)) {
+            return false;
+        }
+        return typeRes === "array" || length === 0 || typeof length === "number" && length > 0 && (length - 1) in obj;
+    }
+    //underscore对isLikeArray的实现
+    var MAX_ARRAY_INDEX=Math.pow(2,53)-1;
+    var isArrayLike = function(collection) {
+        var length = getLength(collection);
+        return typeof length == 'number' && length >= 0 && length <= MAX_ARRAY_INDEX;
+    };
+
+
+
+</script>
+</body>
+</html>

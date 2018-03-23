@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>JavaScript专题之跟着 underscore 学节流</title>
+</head>
+<style>
+    #container{
+        width: 200px;
+        height: 200px;
+        background: #000;
+        text-align: center;
+        font-size: 22px;
+        color: #fff;
+        line-height: 200px;
+    }
+</style>
+<body>
+<div id="container"></div>
+<div>
+    <p>防抖：是虽然事件持续触发，但只有等事件停止触发后 n 秒才执行函数</p>
+    <p>节流：是持续触发的时候，每 n 秒执行一次函数</p>
+</div>
+<script>
+    /*
+    * 限制事件的频繁触发，以及如何做限制：
+    * debounce 防抖
+    * throttle 节流 :原理就是，如果持续触发事件，每隔一段时间，只执行一次事件
+    */
+    //节流的实现：1.使用时间戳，2.设置定时器
+    //1.使用时间戳：当触发事件的时候，我们取出当前的时间戳，然后减去之前的时间戳，(最一开始值设为 0 )，
+    // 如果大于设置的时间周期，就执行函数，然后更新时间戳为当前的时间戳，如果小于，就不执行。
+    //第一版
+    function throttle(func, wait) {
+        var context, args;
+        var previous = 0;
+
+        return function() {
+            var now = +new Date();
+            context = this;
+            args = arguments;
+            if (now - previous > wait) {
+                func.apply(context, args);
+                previous = now;
+            }
+        }
+    }
+    var count=1;
+    var container=document.getElementById('container');
+    function getUserAction(){
+        container.innerHTML=count++;
+    }
+    //container.onmousemove = throttle(getUserAction, 1000);
+    //第二版  使用定时器
+    /*
+     * 当触发事件的时候，我们设置一个定时器，再触发事件的时候，如果定时器存在，就不执行，直到定时器执行，然后执行函数，
+     * 清空定时器，这样就可以设置下个定时器
+     */
+    function throttle2(func,wait){
+        var timeout,
+        previous=0;
+
+        return function () {
+            context=this;
+            args=arguments;
+            if(!timeout){
+                timeout=setTimeout(function () {
+                    timeout=null;
+                    func.apply(context,args);
+                },wait)
+            }
+        }
+    }
+   // container.onmousemove = throttle2(getUserAction, 3000);
+    //版本1和版本2的区别：
+    /*
+     * 1.第一种事件会立刻执行，第二种事件会在 n 秒后第一次执行
+     * 2.第一种事件停止触发后没有办法再执行事件，第二种事件停止触发后依然会再执行一次事件
+     */
+    //第三版
+    //我想要一个有头有尾的！就是鼠标移入能立刻执行，停止触发的时候还能再执行一次！
+    function throttle3(func,wait){
+        var timeout,context,args,result,
+            previous=0;
+
+        var later=function () {
+            previous=+new Date();
+            timeout=null;
+            func.apply(context,args);
+        };
+
+        var throttled=function () {
+            var now=+new Date();
+            //下次触发func的时间
+            var remaining=wait-(now-previous);
+            context=this;
+            args=arguments;
+            //如果没有剩下的时间了或者你改了系统时间
+            if(remaining<=0||remaining>wait){
+                if(timeout){
+                    clearTimeout(timeout);
+                    timeout=null;
+                }
+                previous=now;
+                func.apply(context,args);
+            }else if(!timeout){
+                timeout = setTimeout(later, remaining);
+            }
+        };
+        return throttled;
+    }
+    //container.onmousemove = throttle3(getUserAction, 2000);
+    //优化
+    //第四版
+    //但是我有时也希望无头有尾，或者有头无尾
+    /*
+     * 那我们设置个 options 作为第三个参数，然后根据传的值判断到底哪种效果，我们约定:
+     * leading：false 表示禁用第一次执行
+     * trailing: false 表示禁用停止触发的回调
+     */
+    function throttle(func, wait, options) {
+        var timeout, context, args, result;
+        var previous = 0;
+        if (!options) options = {};
+
+        var later = function() {
+            previous = options.leading === false ? 0 : new Date().getTime();
+            timeout = null;
+            func.apply(context, args);
+            if (!timeout) context = args = null;
+        };
+
+        var throttled = function() {
+            var now = new Date().getTime();
+            if (!previous && options.leading === false) previous = now;
+            var remaining = wait - (now - previous);
+            context = this;
+            args = arguments;
+            if (remaining <= 0 || remaining > wait) {
+                if (timeout) {
+                    clearTimeout(timeout);
+                    timeout = null;
+                }
+                previous = now;
+                func.apply(context, args);
+                if (!timeout) context = args = null;
+            } else if (!timeout && options.trailing !== false) {
+                timeout = setTimeout(later, remaining);
+            }
+        };
+        return throttled;
+    }
+    /**
+     * 第五版 添加取消方法 用法跟 debounce 相同
+     */
+
+    var count = 1;
+    var container = document.getElementById('container');
+
+    function getUserAction() {
+        container.innerHTML = count++;
+    };
+
+    var setUseAction = throttle(getUserAction, 10000);
+    container.onmousemove = setUseAction
+    document.getElementById("button").addEventListener('click', function(){
+        setUseAction.cancel();
+    })
+    function throttle(func, wait, options) {
+        var timeout, context, args, result;
+        var previous = 0;
+        if (!options) options = {};
+        var later = function() {
+            previous = options.leading === false ? 0 : new Date().getTime();
+            timeout = null;
+            func.apply(context, args);
+            if (!timeout) context = args = null;
+        };
+        var throttled = function() {
+            var now = new Date().getTime();
+            if (!previous && options.leading === false) previous = now;
+            var remaining = wait - (now - previous);
+            context = this;
+            args = arguments;
+            if (remaining <= 0 || remaining > wait) {
+                if (timeout) {
+                    clearTimeout(timeout);
+                    timeout = null;
+                }
+                previous = now;
+                func.apply(context, args);
+                if (!timeout) context = args = null;
+            } else if (!timeout && options.trailing !== false) {
+                timeout = setTimeout(later, remaining);
+            }
+        };
+        throttled.cancel = function() {
+            clearTimeout(timeout);
+            previous = 0;
+            timeout = null;
+        };
+        return throttled;
+    }
+</script>
+</body>
+</html>

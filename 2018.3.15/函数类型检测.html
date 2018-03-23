@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>JavaScript专题之类型判断</title>
+</head>
+<body>
+<script>
+    // typeof ：undefined、Function、boolean、number、string、object
+    //Object.prototype.toString：14种类型
+    console.log(Object.prototype.toString.call(undefined));//[object Undefined]
+    console.log(Object.prototype.toString.call(null));//[object Null]
+    console.log(Object.prototype.toString.call(new Date()));//[object Date]
+    console.log(Object.prototype.toString.call(function () {}));//[object Function]
+   function fn() {
+       console.log(Object.prototype.toString.call(arguments));
+   }
+   fn();//[object Arguments]
+
+    //type API
+    var classType={};
+    "Boolean Number String Function Array Date RegExp Object Error Null Undefined".split(' ').map(function(item,index){
+        classType["[object"+item+"]"]+item.toLowerCase();
+    })
+    function type(obj) {
+        //一箭双雕
+        if(obj==null){
+            return obj+"";
+        }
+        return typeof obj==="object"||typeof obj==="function"?
+            classType[Object.prototype.toString.call(obj)]||"object":typeof obj;
+    }
+    var isArray=Array.isArray||function (obj) {
+        return type(obj)==="array";
+    }
+    console.log(type(function(){}));
+    console.log(type([1,2,3,4]));
+    console.log(Array.isArray([1,2,3,4]));//true
+
+
+</script>
+</body>
+</html>

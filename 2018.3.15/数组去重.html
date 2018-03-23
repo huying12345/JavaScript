@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>JavaScript专题之数组去重</title>
+</head>
+<body>
+<script>
+    var array = [1, 1, '1', '1',2,3,4,3,'3','2'];
+    //最原始的遍历方式————兼容性好！！！
+    function unique(array){
+        //用res来储存结果
+        var res=[];
+        for(var i=0,len=array.length;i<len;i++){
+            for(var j=0,resLen=res.length;j<resLen;j++){
+                if(array[i]===res[j]){
+                    break;
+                }
+            }
+            //如果array[i]是唯一的，那么执行完毕，j=resLen；
+            if(j==resLen){
+                res.push(array[i]);
+            }
+        }
+        return res;
+    }
+    //indexOf
+    function unique2(arr) {
+        var res=[];
+        for(var i=0,len=arr.length;i<len;i++){
+            if(res.indexOf(arr[i])===-1){
+                res.push(arr[i]);
+            }
+        }
+        return res;
+    }
+    //排序后去重
+    /**
+     * 只判断当前元素与上一个元素是否相同，相同就说明重复，不相同就添加进 res
+     */
+    function unique3(arr){
+        var res=[];
+        var newArr=arr.sort();
+        var seen;
+        for(var i=0,len=newArr.length;i<len;i++){
+            if(!i||seen!==newArr[i]){
+                res.push(newArr[i]);
+            }
+            seen=newArr[i];
+        }
+        return res;
+    }
+    //写一个数组去重的工具函数
+    /**
+     * 根据一个参数 isSorted 判断传入的数组是否是已排序的，如果为 true，我们就判断相邻元素是否相同，
+     * 如果为 false，我们就使用 indexOf 进行判断
+     */
+
+    function unique4(arr,isSorted) {
+        var res=[],seen;
+        for(var i=0,len=arr.length;i<len;i++){
+            var value=arr[i];
+            if(isSorted){
+                if(!i||seen!==value){
+                    res.push(value);
+                }
+                seen=value;
+            }else{
+                if(res.indexOf(value)===-1){
+                    res.push(value);
+                }
+            }
+        }
+        return res;
+    }
+    //优化
+    /**
+     * 新需求：字母的大小写视为一致，比如'a'和'A'，保留一个就可以了！
+     * @type {*[]}
+     */
+    function unique5(arr,isSorted,iteratee) {
+        var res=[],seen=[];
+        for(var i=0,len=arr.length;i<len;i++){
+            var value=arr[i];
+            var computed=iteratee?iteratee(value,i,arr):value;
+            if(isSorted){
+                if (!i || seen !== computed) {
+                    res.push(value)
+                }
+                seen = computed;
+            }else if(iteratee){
+                if (seen.indexOf(computed) === -1) {
+                    seen.push(computed);
+                    res.push(value);
+                }
+            }else if(res.indexOf(value)===-1){
+                res.push(value);
+            }
+        }
+        return res;
+    }
+
+    var array1 = [1, 2, '1', 2, 1];
+    var array2 = [1, 1, '1', 2, 2];
+    var array3 = [1, 1, 'a', 'A', 2, 2];
+    //console.log(unique(array).sort());// [1, "1", 2, "2", 3, "3", 4]
+    // console.log(unique3(array));//  [1, "1", 2, "2", 3, "3", 4]
+    // console.log(unique4(array1));//[1, 2, "1"]
+    // console.log(unique4(array2));//[1, "1", 2]
+    // console.log(unique5(array3,false,function (item) {
+    //     return typeof item=='string'?item.toLowerCase():item
+    // }));//[1, "a", 2]
+    //filter
+    function unique6(arr) {
+        var res=arr.filter(function (item,index,arr) {
+            return arr.indexOf(item)===index;
+        })
+        return res;
+    }
+    var array = [1, 2, 1, 1, '1'];
+    //console.log(unique6(array));//[1, 2, "1"]
+    //排序去重
+    function unique7(array) {
+        return array.concat().sort().filter(function(item, index, array){
+            return !index || item !== array[index - 1]
+        })
+    }
+    var array = [1, 2, 1, 1, '1'];
+    //console.log(unique7(array));//[1, "1", 2]
+    //Object 键值对ES6 set  map
+    function unique8(array) {
+            return Array.from(new Set(array));
+    }
+    //console.log(unique8(array)); // [1, 2, "1"]
+    //再次简化
+    function unique9(arr) {
+        return [...new Set(arr)];
+    }
+    //console.log(unique9(array));//[1, 2, "1"]
+    //再简化
+    var unique10=(arr)=>[...new Set(arr)];
+    //console.log(unique10(array));// [1, 2, "1"]
+    //Map
+    var unique11=(arr)=>{const seen=new Map();return arr.filter((arr)=>!seen.has(arr)&&seen.set(arr,1))}
+    //console.log(unique11(array));//[1, 2, "1"]
+
+    //使用 JSON.stringify 将对象序列化
+    function unique12(array) {
+        var obj = {};
+        return array.filter(function(item, index, array){
+           // console.log(typeof item + JSON.stringify(item))
+            return obj.hasOwnProperty(typeof item + JSON.stringify(item)) ? false : (obj[typeof item + JSON.stringify(item)] = true)
+        })
+    }
+
+    //特殊类型比较
+    var str1='1';//String类型
+    var str2=new String('1');//Object
+    // 以上所有的去重方式，谁更有效
+    var newArray = [1, 1, '1', '1', null, null, undefined, undefined, new String('1'), new String('1'), /a/, /a/, NaN, NaN];
+    //经测试，for循环和indexOf可以实现对象和NaN不去重
+    console.log(unique(newArray));//[1, "1", null, undefined, String, String, /a/, /a/, NaN, NaN]
+
+
+
+</script>
+</body>
+</html>

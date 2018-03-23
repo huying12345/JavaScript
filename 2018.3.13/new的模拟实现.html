@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>JavaScript深入之new的模拟实现</title>
+</head>
+<body>
+<script>
+    //new 运算符创建一个用户定义的对象类型的实例或具有构造函数的内置对象类型之一
+    function Otauk(name,age) {
+        this.name=name;
+        this.age=age;
+        this.habit="Sleep";
+    }
+    Otauk.prototype.Strength=60;
+    Otauk.prototype.sayYourName=function () {
+        console.log("I am "+this.name);
+    }
+    // var person=new Otauk('Kevin','22');
+    // console.log(person.name) // Kevin
+    // console.log(person.habit) // Sleep
+    // console.log(person.Strength) // 60
+    // person.sayYourName();//I am Kevin
+    //初步实现
+    function objFactory() {
+        var obj=new Object(),
+            Constructor=[].shift.call(arguments);
+        obj.__proto__=Constructor.prototype;
+        Constructor.apply(obj,arguments);
+        return obj;
+    }
+//测试test
+    var person = objFactory(Otauk, 'Kevin', '18')
+    console.log(person.name) // Kevin
+    console.log(person.habit) // Sleep
+    console.log(person.Strength) // 60
+
+    person.sayYourName(); // I am Kevin
+
+    /*
+    * 还需要判断返回的值是不是一个对象，如果是一个对象，我们就返回这个对象，如果没有，我们该返回什么就返回什么
+    * */
+    //第二版
+    function objFactory() {
+        var obj=new Object(),
+        Constructor=[].shift.call(arguments);
+        obj.__proto__=Constructor.prototype;
+        var ret=Constructor.apply(obj,arguments);
+        return typeof ret==='object'?ret:obj;
+    }
+    //测试
+    var obj=function () {return {name:'胡英',age:22};};
+    var person=objFactory(obj);
+    console.log(person.name);
+</script>
+</body>
+</html>
